@@ -33,5 +33,14 @@ export const copiesRouter = createTRPCRouter({
                     },
                 },
             })
+        }),
+    removeCopy: publicProcedure
+        .input(z.string())
+        .mutation(({ input, ctx }) => {
+            return ctx.prisma.copy.delete({
+                where: {
+                    id: input
+                }
+            })
         })
 })

@@ -13,13 +13,18 @@ const Home: NextPage = () => {
     const [copyboardCode, setCopyboardCode] = useState("080091");
     const [copyContent, setCopyContent] = useState("");
 
-    const { data: copyboard } = api.copies.getCopyboardCopies.useQuery({ copyboardCode });
+    const { data: copyboard, refetch } = api.copies.getCopyboardCopies.useQuery({ copyboardCode });
 
-    const addCopy = api.copies.addCopy.useMutation();
+    const addCopy = api.copies.addCopy.useMutation({ onSuccess: () => refetch() });
+    const removeCopy = api.copies.removeCopy.useMutation({ onSuccess: () => refetch() });
 
     const submitCopy = () => {
         addCopy.mutate({ content: copyContent, copyboardCode })
         setCopyContent("")
+    }
+
+    const deleteCopy = (id: string) => {
+        removeCopy.mutate(id)
     }
 
     return (
@@ -54,12 +59,12 @@ const Home: NextPage = () => {
                             </Card>
                             <Separator className="my-4" />
                             {copyboard && copyboard.copies.map((copy, index) => {
-                                return <CopyCard key={index} {...copy} />
+                                return <CopyCard key={index} deleteCopy={deleteCopy} {...copy} />
                             })}
                         </div>
                     </div>
                     <div className="absolute bottom-4 right-4 flex gap-4 items-center">
-                        <Button className="w-10 rounded-full p-0">
+                        <Button className="w-10 rounded-full p-0" onClick={() => setCopyboardCode("408675")}>
                             <Plus />
                         </Button>
                         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4">
@@ -82,13 +87,17 @@ const Home: NextPage = () => {
 
 export default Home;
 
-export const CopyCard: React.FC<Copy> = (copy) => {
+interface CopyCardProps extends Copy {
+    deleteCopy: (copyId: string) => void
+}
+
+export const CopyCard: React.FC<CopyCardProps> = ({ deleteCopy, ...copy }) => {
     return (
         <Card>
             <CardHeader className="flex-row items-center justify-between">
                 <h2 className="">{copy.createdAt.toLocaleDateString()}</h2>
                 <div className="flex gap-2">
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={() => deleteCopy(copy.id)}>
                         <Trash2 />
                     </Button>
                     <Button variant="outline">
