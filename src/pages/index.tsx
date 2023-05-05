@@ -1,12 +1,26 @@
+import { type Copy } from "@prisma/client";
 import { ClipboardCopy, Plus, Trash2 } from "lucide-react";
 import { type NextPage } from "next";
 import Head from "next/head";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
+import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
+    const [copyboardCode, setCopyboardCode] = useState("080091");
+    const [copyContent, setCopyContent] = useState("");
+
+    const { data: copyboard } = api.copies.getCopyboardCopies.useQuery({ copyboardCode });
+
+    const addCopy = api.copies.addCopy.useMutation();
+
+    const submitCopy = () => {
+        addCopy.mutate({ content: copyContent, copyboardCode })
+        setCopyContent("")
+    }
 
     return (
         <>
@@ -25,28 +39,23 @@ const Home: NextPage = () => {
                                     <h2 className="text-xl font-bold">Paste new copy</h2>
                                 </CardHeader>
                                 <CardContent className="flex gap-4">
-                                    <Input type="text" placeholder="But that all changed when the Fire Nation attacked..." />
-                                    <Button type="submit">Add</Button>
+                                    <Input
+                                        type="text"
+                                        placeholder="But that all changed when the Fire Nation attacked..."
+                                        value={copyContent}
+                                        onInput={(e: React.KeyboardEvent<HTMLInputElement>) => setCopyContent(e.currentTarget.value)} />
+                                    <Button
+                                        type="submit"
+                                        onClick={() => submitCopy()}
+                                    >
+                                        Add
+                                    </Button>
                                 </CardContent>
                             </Card>
                             <Separator className="my-4" />
-                            <Card>
-                                <CardHeader className="flex-row items-center justify-between">
-                                    <h2 className="">24/04</h2>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline">
-                                            <Trash2 />
-                                        </Button>
-                                        <Button variant="outline">
-                                            <ClipboardCopy />
-                                        </Button>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="bg-gray-200 rounded-lg border bg-card text-card-foreground shadow-sm p-4">
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            {copyboard && copyboard.copies.map((copy, index) => {
+                                return <CopyCard key={index} {...copy} />
+                            })}
                         </div>
                     </div>
                     <div className="absolute bottom-4 right-4 flex gap-4 items-center">
@@ -57,7 +66,7 @@ const Home: NextPage = () => {
                             <div className="mb-1">CopyBoard code:</div>
                             <div className="flex gap-2 items-center justify-center">
                                 <div className="font-bold text-3xl bg-gray-400 p-1 rounded-md flex items-center justify-center">
-                                    080 091
+                                    {copyboardCode}
                                 </div>
                                 <Button variant="outline">
                                     <ClipboardCopy />
@@ -72,3 +81,26 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+export const CopyCard: React.FC<Copy> = (copy) => {
+    return (
+        <Card>
+            <CardHeader className="flex-row items-center justify-between">
+                <h2 className="">{copy.createdAt.toLocaleDateString()}</h2>
+                <div className="flex gap-2">
+                    <Button variant="outline">
+                        <Trash2 />
+                    </Button>
+                    <Button variant="outline">
+                        <ClipboardCopy />
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="bg-gray-200 rounded-lg border bg-card text-card-foreground shadow-sm p-4">
+                    {copy.content}
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
