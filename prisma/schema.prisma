@@ -9,3 +9,18 @@ datasource db {
     provider = "sqlite"
     url      = env("DATABASE_URL")
 }
+
+model Copyboard {
+    id       String   @id @default(cuid())
+    code     String   @unique
+    copies   Copy[]
+    createdAt DateTime @default(now())
+}
+
+model Copy {
+    id          String   @id @default(cuid())
+    createdAt   DateTime @default(now())
+    copyboardId String
+    copyboard   Copyboard @relation(fields: [copyboardId], references: [id])
+    content     String
+}
