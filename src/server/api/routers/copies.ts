@@ -27,8 +27,13 @@ export const copiesRouter = createTRPCRouter({
                 data: {
                     content: input.content,
                     copyboard: {
-                        connect: {
-                            code: input.copyboardCode
+                        connectOrCreate: {
+                            where: {
+                                code: input.copyboardCode
+                            },
+                            create: {
+                                code: input.copyboardCode
+                            },
                         },
                     },
                 },
