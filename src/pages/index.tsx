@@ -1,10 +1,12 @@
 import { type Copy } from "@prisma/client";
+import { DialogClose } from "@radix-ui/react-dialog";
 import { ClipboardCopy, Plus, Trash2 } from "lucide-react";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, } from "~/components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
@@ -12,6 +14,7 @@ import { api } from "~/utils/api";
 const Home: NextPage = () => {
     const [copyboardCode, setCopyboardCode] = useState("080091");
     const [copyContent, setCopyContent] = useState("");
+    const [newCode, setNewCode] = useState("");
 
     const { data: copyboard, refetch } = api.copies.getCopyboardCopies.useQuery({ copyboardCode });
 
@@ -64,9 +67,33 @@ const Home: NextPage = () => {
                         </div>
                     </div>
                     <div className="absolute bottom-4 right-4 flex gap-4 items-center">
-                        <Button className="w-10 rounded-full p-0" onClick={() => setCopyboardCode("408675")}>
-                            <Plus />
-                        </Button>
+                        <Dialog>
+                            <DialogTrigger className="rounded-full p-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                                <Plus />
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>New CopyBoard</DialogTitle>
+                                </DialogHeader>
+                                <div className="flex justify-center">
+                                    <Input
+                                        type="text"
+                                        className="text-4xl w-44"
+                                        value={newCode}
+                                        onInput={(e: React.KeyboardEvent<HTMLInputElement>) => setNewCode(e.currentTarget.value)}
+                                    />
+                                </div>
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button type="submit" onClick={() => {
+                                            setCopyboardCode(newCode)
+                                        }}>
+                                            Go
+                                        </Button>
+                                    </DialogClose>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4">
                             <div className="mb-1">CopyBoard code:</div>
                             <div className="flex gap-2 items-center justify-center">
